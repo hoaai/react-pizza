@@ -1,13 +1,37 @@
 import React from 'react';
+import debounce from 'lodash.debounce';
 
 import styles from './Search.module.scss';
+import { SearchContext } from '../../App';
 
-const Search = ({ searchValue, setSearchValue }) => {
+const Search = () => {
+   const [value, setValue] = React.useState('');
+   const {setSearchValue } = React.useContext(SearchContext);
+   const inputRef = React.useRef();
+
+   const onClickClear = () => {
+      setSearchValue('');
+		setValue('');
+      inputRef.current.focus();
+   };
+
+   const updateSearchValue = React.useCallback(
+      debounce((str) => {
+         setSearchValue(str);
+      }, 250),
+      [],
+   );
+
+   const onChangeInput = (event) => {
+      setValue(event.target.value);
+      updateSearchValue(event.target.value);
+   };
+
    return (
       <div className={styles.root}>
          <svg
             className={styles.icon}
-            enable-background="new 0 0 50 50"
+            enableBackground="new 0 0 50 50"
             height="50px"
             id="Layer_1"
             version="1.1"
@@ -21,15 +45,15 @@ const Search = ({ searchValue, setSearchValue }) => {
                fill="none"
                r="16"
                stroke="#000000"
-               stroke-linecap="round"
-               stroke-miterlimit="10"
-               stroke-width="2"
+               strokeLinecap="round"
+               strokeMiterlimit="10"
+               strokeWidth="2"
             />
             <line
                fill="none"
                stroke="#000000"
-               stroke-miterlimit="10"
-               stroke-width="4"
+               strokeMiterlimit="10"
+               strokeWidth="4"
                x1="32.229"
                x2="45.5"
                y1="32.229"
@@ -37,15 +61,16 @@ const Search = ({ searchValue, setSearchValue }) => {
             />
          </svg>
          <input
-			value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
+            ref={inputRef}
+            value={value}
+            onChange={onChangeInput}
             className={styles.input}
             placeholder="Поиск пиццы..."
             type="text"
          />
-         {searchValue && (
+         {value && (
             <svg
-				onClick={()=>setSearchValue('')}
+               onClick={onClickClear}
                className={styles.clearIcon}
                height="48"
                viewBox="0 0 48 48"
