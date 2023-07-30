@@ -1,37 +1,46 @@
 import React from 'react';
-import { useDispatch,useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { addItem } from '../../redux/slices/cartSlice';
-
+import { addItem, selectCartItemById } from '../../redux/slices/cartSlice';
+import { Link } from 'react-router-dom';
 
 const typeNames = ['тонкое', 'традиционное'];
 
+type PizzaBlockProps = {
+   id: string;
+   title: string;
+   price: number;
+   imageUrl: string;
+   sizes: number[];
+   types: number[];
+};
 
-const PizzaBlock = ({ id,title, price, imageUrl, sizes, types }) => {
-	
-	const dispatch = useDispatch();
-	const cartItem = useSelector(state=> state.cartSlice.items.find((obj)=>obj.id==id));
+const PizzaBlock: React.FC<PizzaBlockProps> = ({ id, title, price, imageUrl, sizes, types }) => {
+   const dispatch = useDispatch();
+   const cartItem = useSelector(selectCartItemById(id));
 
-	const addedCount = cartItem ? cartItem.count : 0;
- 
+   const addedCount = cartItem ? cartItem.count : 0;
+
    const [activeType, setActiveType] = React.useState(0);
-   const [activeSize, setActiveSize] = React.useState(0);const onClickAdd = () => {
-		const item ={
-			id,
-			title,
-			price,
-			imageUrl,
-			type:typeNames[activeType],
-			size:sizes[activeSize],
-		};
-		dispatch(addItem(item))
-
-	}
+   const [activeSize, setActiveSize] = React.useState(0);
+   const onClickAdd = () => {
+      const item = {
+         id,
+         title,
+         price,
+         imageUrl,
+         type: typeNames[activeType],
+         size: sizes[activeSize],
+      };
+      dispatch(addItem(item));
+   };
 
    return (
       <div className="pizza-block-wrapper">
          <div className="pizza-block">
-            <img className="pizza-block__image" src={imageUrl} alt="Pizza" />
+            <Link to={`/pizza/${id}`}>
+               <img className="pizza-block__image" src={imageUrl} alt="Pizza" />
+            </Link>
             <h4 className="pizza-block__title">{title}</h4>
             <div className="pizza-block__selector">
                <ul>
@@ -75,8 +84,8 @@ const PizzaBlock = ({ id,title, price, imageUrl, sizes, types }) => {
                         fill="white"
                      />
                   </svg>
-                  <span >Добавить</span>
-                  {addedCount>0 &&<i>{addedCount}</i>}
+                  <span>Добавить</span>
+                  {addedCount > 0 && <i>{addedCount}</i>}
                </button>
             </div>
          </div>

@@ -1,6 +1,5 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import axios from 'axios';
 import qs from 'qs';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,28 +8,30 @@ import Sort, { sortList } from '../components/Sort';
 import PizzaBlock from '../components/PizzaBlock/PizzaBlock';
 import Skeleton from '../components/PizzaBlock/Skeleton';
 import Pagination from '../components/Pagination/Pagination';
-import { SearchContext } from '../App';
-import { setCategoryId, setCurrentPage, setFilters } from '../redux/slices/filterSlice';
-import { fetchPizzas } from '../redux/slices/pizzaSlice';
+import {
+   selectFilter,
+   setCategoryId,
+   setCurrentPage,
+   setFilters,
+} from '../redux/slices/filterSlice';
+import { fetchPizzas, selectPizzaData } from '../redux/slices/pizzaSlice';
 
-export const Home = () => {
+export const Home: React.FC = () => {
    const dispatch = useDispatch();
    const navigate = useNavigate();
 
-   const { categoryId, sort, currentPage } = useSelector((state) => state.filterSlice);
-   const { items, status } = useSelector((state) => state.pizzaSlice);
+   const { categoryId, sort, currentPage, searchValue } = useSelector(selectFilter);
+   const { items, status } = useSelector(selectPizzaData);
 
    const isSearch = React.useRef(false);
    const isMounted = React.useRef(false);
 
-   const { searchValue } = React.useContext(SearchContext);
-
-   const onChangeCategory = (id) => {
-      dispatch(setCategoryId(id));
+   const onChangeCategory = (idx: number) => {
+      dispatch(setCategoryId(idx));
    };
 
-   const onChangePage = (number) => {
-      dispatch(setCurrentPage(number));
+   const onChangePage = (page: number) => {
+      dispatch(setCurrentPage(page));
    };
 
    const getPizzas = async () => {
@@ -39,6 +40,7 @@ export const Home = () => {
       const category = categoryId > 0 ? `category=${categoryId}` : '';
       const search = searchValue > 0 ? `&search=${searchValue}` : '';
       dispatch(
+         //@ts-ignore
          fetchPizzas({
             sortBy,
             order,
@@ -85,25 +87,25 @@ export const Home = () => {
    }, [categoryId, sort.sortProperty, searchValue, currentPage]);
 
    const pizzas = items
-      .filter((obj) => obj.title.toLowerCase().includes(searchValue.toLowerCase()))
-      .map((obj) => <PizzaBlock key={obj.id} {...obj} />);
+      .filter((obj: any) => obj.title.toLowerCase().includes(searchValue.toLowerCase()))
+      .map((obj: any) => (
+         <PizzaBlock key ={obj.id} {...obj}/>
+      ));
    const skeletons = [...new Array(6)].map((_, index) => <Skeleton key={index} />);
 
    return (
       <div className="container">
          <div className="content__top">
-            <Categories value={categoryId} onClickCategory={onChangeCategory} />
+            <Categories value={categoryId} onChangeCategory={onChangeCategory} />
             <Sort />
          </div>
          <h2 className="content__title">Все пиццы</h2>
          {status === 'error' ? (
-            <div className='content__error-info'>
+            <div className="content__error-info">
                <h2>
                   Произошла ошибка <span>😕</span>
                </h2>
-               <p>
-                  Не удалось получить пиццы. Попробуйте повторить попытку позже
-               </p>
+               <p>Не удалось получить пиццы. Попробуйте повторить попытку позже</p>
             </div>
          ) : (
             <div className="content__items">{status === 'loading' ? skeletons : pizzas}</div>
